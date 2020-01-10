@@ -5,7 +5,24 @@ const util = require('util');
 
 module.exports = {
   messages: {
-    get: function () { }, // READ a function which produces all the messages
+    get: function (req, callback) {
+      let messageQueryString =
+      `SELECT messages.id id, messages.contents contents, rooms.name roomname, users.name username
+      FROM messages
+        INNER JOIN rooms
+          ON messages.room_id = rooms.id
+        INNER JOIN users
+          ON messages.user_id = users.id`;
+
+      db.dbConnection.query(messageQueryString, (err, results) => {
+        if (err) {
+          callback(err);
+        }
+        console.log('Retrieved messages from database!');
+        console.log(results);
+        callback(results);
+      });
+    }, // READ a function which produces all the messages
     post: function (messageObj, callback) {
 
       // //create a formatted string 'stringQuery'
