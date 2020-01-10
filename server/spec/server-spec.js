@@ -16,15 +16,21 @@ describe('Persistent Node Chat Server', function () {
     });
     dbConnection.connect();
 
-    var tablename = 'messages'; // TODO: fill this out
+    var tablenames = ['users', 'messages', 'rooms']; // TODO: fill this out
 
     /* Empty the db table before each test so that multiple tests
      * (or repeated runs of the tests) won't screw each other up: */
-    dbConnection.query('truncate ' + tablename, done);
+    dbConnection.query('SET FOREIGN_KEY_CHECKS = 0;', (err, data) => {
+      tablenames.forEach((tablename) => dbConnection.query('truncate ' + tablename));
+      done();
+    });
   });
 
-  afterEach(function () {
-    dbConnection.end();
+  afterEach(function (done) {
+    dbConnection.query('SET FOREIGN_KEY_CHECKS = 1;', (err, data) => {
+      dbConnection.end();
+      done();
+    });
   });
 
   it('Should insert posted messages to the DB', function (done) {
@@ -57,7 +63,7 @@ describe('Persistent Node Chat Server', function () {
           expect(results.length).to.equal(1);
 
           // TODO: If you don't have a column named text, change this test.
-          expect(results[0].text).to.equal('In mercy\'s name, three days is all I need.');
+          expect(results[0].contents).to.equal('In mercy\'s name, three days is all I need.');
 
           done();
         });
@@ -67,7 +73,7 @@ describe('Persistent Node Chat Server', function () {
 
   it('Should output all messages from the DB', function (done) {
     // Let's insert a message into the db
-    var queryString = "";
+    var queryString = '';
     var queryArgs = [];
     // TODO - The exact query string and query args to use
     // here depend on the schema you design, so I'll leave
